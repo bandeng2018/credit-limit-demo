@@ -1,0 +1,2959 @@
+<!DOCTYPE html>
+<!-- saved from url=(0161)file:///E:/OPENCODE/%E9%A2%9D%E5%BA%A6%E6%BC%94%E7%A4%BA/%E4%BF%A1%E7%94%A8%E5%8D%A1%E9%A2%9D%E5%BA%A6%E7%BB%93%E6%9E%84%E6%BC%94%E7%A4%BA%E5%B7%A5%E5%85%B7.html -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>信用卡额度结构演示工具</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #023047 0%, #0a4a6e 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #8ecae6;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* 节点图区域 */
+    .diagram-section {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(10px);
+    }
+
+    .diagram-title {
+      font-size: 16px;
+      color: #8ecae6;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .diagram-title::before {
+      content: '';
+      width: 4px;
+      height: 16px;
+      background: #2a9d8f;
+      border-radius: 2px;
+    }
+
+    .node-diagram {
+      position: relative;
+      min-height: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+/* 07 节点 - 综授额度 */
+    .node-07 {
+      background: linear-gradient(135deg, #ffb703 0%, #fb8500 100%);
+      border-radius: 16px;
+      padding: 20px 40px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(255, 183, 3, 0.3);
+      z-index: 3;
+    }
+
+    .node-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 4px;
+    }
+
+    .node-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .progress-bar {
+      width: 180px;
+      height: 24px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 12px;
+      transition: width 0.4s ease, background 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .progress-fill.used {
+      background: linear-gradient(90deg, #fb8500, #e76f51);
+    }
+
+    .progress-fill.warning {
+      background: linear-gradient(90deg, #ffb703, #fb8500);
+    }
+
+    .progress-fill.normal {
+      background: linear-gradient(90deg, #2a9d8f, #219ebc);
+    }
+
+    .node-stats {
+      display: flex;
+      justify-content: space-between;
+      width: 180px;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .stat-available {
+      color: #8ecae6;
+    }
+
+    .stat-available.negative {
+      color: #e76f51;
+    }
+
+    .stat-total {
+      color: #ffb703;
+    }
+
+    /* 交易按钮 */
+    .transaction-actions {
+      display: flex;
+      gap: 4px;
+      margin-left: 8px;
+    }
+
+    .btn-action {
+      padding: 3px 8px;
+      border: none;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-action:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-action.paochang {
+      background: rgba(42, 157, 143, 0.6);
+      color: #fff;
+    }
+
+    .btn-action.paochang:not(:disabled):hover {
+      background: #2a9d8f;
+    }
+
+    .btn-action.tuihuo {
+      background: rgba(231, 111, 81, 0.6);
+      color: #fff;
+    }
+
+    .btn-action.tuihuo:not(:disabled):hover {
+      background: #e76f51;
+    }
+
+    /* 抛帐/退货记录 */
+    .action-log {
+      font-size: 9px;
+      color: rgba(255, 183, 3, 0.8);
+      margin-left: 4px;
+    }
+
+    /* 连接线区域 */
+    .connectors {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      margin: 0;
+      position: relative;
+    }
+
+    .connector-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .connector-line {
+      width: 3px;
+      height: 40px;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2));
+      border-radius: 2px;
+    }
+
+    /* 子节点容器 */
+    .child-nodes {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* 01 节点 - 消费额度 */
+    .node-01 {
+      background: linear-gradient(135deg, #219ebc 0%, #023047 100%);
+      border-radius: 16px;
+      padding: 16px 24px;
+      text-align: center;
+      box-shadow: 0 6px 24px rgba(33, 158, 188, 0.3);
+    }
+
+    .node-01 .progress-bar {
+      width: 140px;
+      height: 20px;
+    }
+
+    .node-01 .node-stats {
+      width: 140px;
+    }
+
+/* 03 节点 - 分期额度 */
+    .node-03 {
+      background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+      border-radius: 16px;
+      padding: 16px 24px;
+      text-align: center;
+      box-shadow: 0 6px 24px rgba(155, 89, 182, 0.3);
+    }
+
+    .node-03 .progress-bar {
+      width: 140px;
+      height: 20px;
+    }
+
+    .node-03 .node-stats {
+      width: 140px;
+    }
+
+/* 13 节点 - 分期独享额度 */
+    .node-13 {
+      background: linear-gradient(135deg, #2a9d8f 0%, #264653 100%);
+      border-radius: 16px;
+      padding: 16px 24px;
+      text-align: center;
+      box-shadow: 0 6px 24px rgba(42, 157, 143, 0.3);
+    }
+
+    .node-13 .progress-bar {
+      width: 140px;
+      height: 20px;
+    }
+
+    .node-13 .node-stats {
+      width: 140px;
+    }
+
+    /* 节点说明 */
+    .node-legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+    }
+
+.legend-dot.blue { background: #219ebc; }
+    .legend-dot.orange { background: #9b59b6; }
+    .legend-dot.red { background: #2a9d8f; }
+    .legend-dot.green { background: #ffb703; }
+
+    /* 控制面板区域 */
+    .control-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .control-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .control-title {
+      font-size: 14px;
+      color: #8ecae6;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .control-title::before {
+      content: '';
+      width: 4px;
+      height: 14px;
+      background: #ffb703;
+      border-radius: 2px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #ffb703;
+    }
+
+    .form-input::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-consumption {
+      background: linear-gradient(135deg, #219ebc, #023047);
+      color: #fff;
+    }
+
+    .btn-consumption:hover {
+      background: linear-gradient(135deg, #2a9d8f, #023047);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(33, 158, 188, 0.4);
+    }
+
+    .btn-installment {
+      background: linear-gradient(135deg, #fb8500, #e76f51);
+      color: #fff;
+    }
+
+    .btn-installment:hover {
+      background: linear-gradient(135deg, #ffb703, #fb8500);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(251, 133, 0, 0.4);
+    }
+
+    .btn-reset {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+.btn-reset:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-repayment {
+      background: linear-gradient(135deg, #2a9d8f, #264653);
+    }
+
+    .btn-repayment:hover {
+      background: linear-gradient(135deg, #35b5a6, #2a9d8f);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(42, 157, 143, 0.4);
+    }
+
+    /* 结果面板 */
+    .result-panel {
+      background: rgba(42, 157, 143, 0.2);
+      border: 1px solid rgba(42, 157, 143, 0.4);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .result-title {
+      font-size: 13px;
+      color: #2a9d8f;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .result-item:last-child {
+      border-bottom: none;
+    }
+
+    .result-label {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .result-value {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .result-value.consumption {
+      color: #219ebc;
+    }
+
+    .result-value.installment {
+      color: #fb8500;
+    }
+
+    .result-value.zero {
+      color: #e76f51;
+    }
+
+    /* 交易记录 */
+    .transaction-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 12px;
+    }
+
+    .transaction-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .transaction-list::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 2px;
+    }
+
+    .transaction-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+    }
+
+    .transaction-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+
+    .transaction-item-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .transaction-item-detail {
+      font-size: 10px;
+      color: rgba(255, 183, 3, 0.7);
+      width: 100%;
+      margin-top: 4px;
+      padding-left: 4px;
+    }
+
+    .transaction-type {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .transaction-type.consumption {
+      background: rgba(33, 158, 188, 0.3);
+      color: #8ecae6;
+    }
+
+.transaction-type.installment {
+      background: rgba(251, 133, 0, 0.3);
+      color: #ffb703;
+    }
+
+    .transaction-type.repayment {
+      background: rgba(42, 157, 143, 0.3);
+      color: #2a9d8f;
+    }
+
+    .empty-message {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 12px;
+      padding: 20px;
+    }
+
+    /* 公式说明 */
+    .formula-section {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 20px;
+    }
+
+    .formula-title {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 10px;
+    }
+
+    .formula {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.8);
+      line-height: 1.8;
+    }
+
+    .formula-highlight {
+      color: #ffb703;
+      font-weight: 600;
+    }
+
+    .formula-node {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin: 0 2px;
+    }
+
+    .formula-node.blue { background: rgba(33, 158, 188, 0.3); color: #8ecae6; }
+    .formula-node.orange { background: rgba(251, 133, 0, 0.3); color: #ffb703; }
+    .formula-node.red { background: rgba(231, 111, 81, 0.3); color: #e76f51; }
+    .formula-node.green { background: rgba(42, 157, 143, 0.3); color: #2a9d8f; }
+
+    /* 额度说明 */
+    .limit-info {
+      background: rgba(255, 183, 3, 0.1);
+      border: 1px solid rgba(255, 183, 3, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .limit-info-title {
+      font-size: 11px;
+      color: #ffb703;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .limit-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 4px;
+    }
+
+.limit-value {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .limit-input {
+      width: 100px;
+      padding: 4px 8px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      color: #fff;
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .limit-input:disabled {
+      background: rgba(0, 0, 0, 0.2);
+      color: rgba(255, 255, 255, 0.6);
+      cursor: not-allowed;
+    }
+
+    .limit-input:focus {
+      outline: none;
+      border-color: #ffb703;
+    }
+
+    .limit-error {
+      color: #e76f51;
+      font-size: 11px;
+      margin-top: 8px;
+      min-height: 14px;
+    }
+
+    .btn-save {
+      width: 100%;
+      padding: 8px;
+      margin-top: 10px;
+      background: linear-gradient(135deg, #2a9d8f, #264653);
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-save:hover {
+      background: linear-gradient(135deg, #35b5a6, #2a9d8f);
+    }
+  </style>
+<script type="text/javascript" charset="utf-8" src="chrome-extension://apkomdimgoabnaokkggecggjhbbfakmo/read-more-web.iife.js" data-ext-script="chrome-extension://apkomdimgoabnaokkggecggjhbbfakmo/read-out-loud-web.js" id="read-more-web-script"></script><style>/* Copyright (C) Microsoft Corporation. All rights reserved. */
+
+.msreadout-word-highlight:not(.msreadout-inactive-highlight) {
+    background: #ffff00 !important;
+    color: black !important;
+}
+
+.msreadout-line-highlight:not(.msreadout-inactive-highlight) {
+    background: #b2d6f3 !important;
+    color: black !important;
+}
+
+@media screen and (-ms-high-contrast: active) {
+    .msreadout-word-highlight:not(.msreadout-inactive-highlight) {
+        -ms-high-contrast-adjust: none;
+        background-color: Highlight !important;
+        color: HighlightText !important;
+    }
+
+    .msreadout-line-highlight:not(.msreadout-inactive-highlight) {
+        -ms-high-contrast-adjust: none;
+        background: yellow !important;
+        color: black !important;
+    }
+}
+/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly8uLy4uLy4uL2Nzcy9yZWFkX291dF9sb3VkX3dlYi5jc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsOERBQThEOztBQUU5RDtJQUNJLDhCQUE4QjtJQUM5Qix1QkFBdUI7QUFDM0I7O0FBRUE7SUFDSSw4QkFBOEI7SUFDOUIsdUJBQXVCO0FBQzNCOztBQUVBO0lBQ0k7UUFDSSw4QkFBOEI7UUFDOUIsc0NBQXNDO1FBQ3RDLCtCQUErQjtJQUNuQzs7SUFFQTtRQUNJLDhCQUE4QjtRQUM5Qiw2QkFBNkI7UUFDN0IsdUJBQXVCO0lBQzNCO0FBQ0oiLCJzb3VyY2VzQ29udGVudCI6WyIvKiBDb3B5cmlnaHQgKEMpIE1pY3Jvc29mdCBDb3Jwb3JhdGlvbi4gQWxsIHJpZ2h0cyByZXNlcnZlZC4gKi9cclxuXHJcbi5tc3JlYWRvdXQtd29yZC1oaWdobGlnaHQ6bm90KC5tc3JlYWRvdXQtaW5hY3RpdmUtaGlnaGxpZ2h0KSB7XHJcbiAgICBiYWNrZ3JvdW5kOiAjZmZmZjAwICFpbXBvcnRhbnQ7XHJcbiAgICBjb2xvcjogYmxhY2sgIWltcG9ydGFudDtcclxufVxyXG5cclxuLm1zcmVhZG91dC1saW5lLWhpZ2hsaWdodDpub3QoLm1zcmVhZG91dC1pbmFjdGl2ZS1oaWdobGlnaHQpIHtcclxuICAgIGJhY2tncm91bmQ6ICNiMmQ2ZjMgIWltcG9ydGFudDtcclxuICAgIGNvbG9yOiBibGFjayAhaW1wb3J0YW50O1xyXG59XHJcblxyXG5AbWVkaWEgc2NyZWVuIGFuZCAoLW1zLWhpZ2gtY29udHJhc3Q6IGFjdGl2ZSkge1xyXG4gICAgLm1zcmVhZG91dC13b3JkLWhpZ2hsaWdodDpub3QoLm1zcmVhZG91dC1pbmFjdGl2ZS1oaWdobGlnaHQpIHtcclxuICAgICAgICAtbXMtaGlnaC1jb250cmFzdC1hZGp1c3Q6IG5vbmU7XHJcbiAgICAgICAgYmFja2dyb3VuZC1jb2xvcjogSGlnaGxpZ2h0ICFpbXBvcnRhbnQ7XHJcbiAgICAgICAgY29sb3I6IEhpZ2hsaWdodFRleHQgIWltcG9ydGFudDtcclxuICAgIH1cclxuXHJcbiAgICAubXNyZWFkb3V0LWxpbmUtaGlnaGxpZ2h0Om5vdCgubXNyZWFkb3V0LWluYWN0aXZlLWhpZ2hsaWdodCkge1xyXG4gICAgICAgIC1tcy1oaWdoLWNvbnRyYXN0LWFkanVzdDogbm9uZTtcclxuICAgICAgICBiYWNrZ3JvdW5kOiB5ZWxsb3cgIWltcG9ydGFudDtcclxuICAgICAgICBjb2xvcjogYmxhY2sgIWltcG9ydGFudDtcclxuICAgIH1cclxufSJdLCJzb3VyY2VSb290IjoiIn0= */</style></head>
+<body>
+  <div class="container">
+    <h1>信用卡额度结构演示工具</h1>
+    <p class="subtitle">实时模拟分期与消费交易的额度占用逻辑</p>
+
+    <div class="main-layout">
+      <!-- 节点图区域 -->
+      <div class="diagram-section">
+        <div class="diagram-title">节点额度结构</div>
+
+        <div class="node-diagram">
+          <!-- 07 节点 -->
+          <div class="node-07">
+            <div class="node-label">07 节点</div>
+            <div class="node-name">综授额度</div>
+            <div class="progress-bar">
+              <div class="progress-fill normal" id="progress-07" style="width: 0%;"></div>
+            </div>
+            <div class="node-stats">
+              <span class="stat-available">可用: <strong id="available-07" class="stat-available">¥20,000</strong></span>
+              <span class="stat-total">总额: <strong id="total-07">20000</strong></span>
+            </div>
+          </div>
+
+          <div class="connector-line"></div>
+
+          <!-- 子节点 -->
+          <div class="child-nodes">
+            <!-- 01 节点 -->
+            <div class="node-01">
+              <div class="node-label">01 节点</div>
+              <div class="node-name">消费额度</div>
+              <div class="progress-bar">
+                <div class="progress-fill normal" id="progress-01" style="width: 0%;"></div>
+              </div>
+              <div class="node-stats">
+                <span class="stat-available">可用: <strong id="available-01" class="stat-available">¥12,000</strong></span>
+                <span class="stat-total">总额: <strong id="total-01">12000</strong></span>
+              </div>
+            </div>
+
+            <!-- 03 节点 -->
+            <div class="node-03">
+              <div class="node-label">03 节点</div>
+              <div class="node-name">分期额度</div>
+              <div class="progress-bar">
+                <div class="progress-fill normal" id="progress-03" style="width: 0%;"></div>
+              </div>
+              <div class="node-stats">
+                <span class="stat-available">可用: <strong id="available-03" class="stat-available">¥20,000</strong></span>
+                <span class="stat-total">总额: <strong id="total-03">20000</strong></span>
+              </div>
+            </div>
+
+            <!-- 13 节点 -->
+            <div class="node-13">
+              <div class="node-label">13 节点</div>
+              <div class="node-name">分期独享额度</div>
+              <div class="progress-bar">
+                <div class="progress-fill normal" id="progress-13" style="width: 0%;"></div>
+              </div>
+              <div class="node-stats">
+                <span class="stat-available">可用: <strong id="available-13" class="stat-available">¥8,000</strong></span>
+                <span class="stat-total">总额: <strong id="total-13">8000</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="node-legend">
+          <div class="legend-item">
+            <div class="legend-dot blue"></div>
+            <span>消费额度 (01)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot orange"></div>
+            <span>分期额度 (03)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot red"></div>
+            <span>分期独享 (13)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot green"></div>
+            <span>综授额度 (07)</span>
+          </div>
+        </div>
+
+<div class="formula-section">
+          <div class="formula-title">额度关系公式</div>
+          <div class="formula" id="formula-display">
+            <span class="formula-node orange">03</span>(<span id="formula-03">20000</span>) = <span class="formula-node blue">01</span>(<span id="formula-01">12000</span>) + <span class="formula-node red">13</span>(<span id="formula-13">8000</span>)<br>
+            <span class="formula-node blue">01</span>(<span id="formula-01b">12000</span>) ≤ <span class="formula-node green">07</span>(<span id="formula-07">20000</span>), <span class="formula-node orange">03</span>(<span id="formula-03b">20000</span>) ≤ <span class="formula-node green">07</span>(<span id="formula-07b">20000</span>)<br>
+            消费占用: <span class="formula-node blue">01</span> + <span class="formula-node green">07</span><br>
+分期占用: <span class="formula-node orange">03</span> + <span class="formula-node green">07</span> + (<span class="formula-node red">13</span>|<span class="formula-node blue">01</span>) 分期优先消耗 13 额度，13 用尽后消耗 01 剩余额度<br>
+抛帐规则: 最多2次 | 每次抛出金额的1/2 | 抛出金额占01 | 抛出金额恢复03 | 抛出金额恢复当时占的01或13 | 07不恢复<br>
+退货规则: 仅1次 | 抛帐后不可退货 | 恢复当初占用01或13 | 恢复03全额 | 恢复07全额
+          </div>
+        </div>
+      </div>
+
+      <!-- 控制面板 -->
+      <div class="control-panel">
+        <div class="control-card">
+          <div class="control-title">额度初始设置</div>
+
+<div class="limit-info">
+            <div class="limit-info-title">初始额度配置</div>
+            <div class="limit-row">
+              <span>01 消费额度</span>
+              <input type="number" class="limit-input" id="input-01" min="0">
+            </div>
+            <div class="limit-row">
+              <span>03 分期额度</span>
+              <input type="number" class="limit-input" id="input-03" min="0">
+            </div>
+            <div class="limit-row">
+              <span>13 分期独享</span>
+              <input type="number" class="limit-input" id="input-13" min="0">
+            </div>
+            <div class="limit-row">
+              <span>07 综授额度</span>
+              <input type="number" class="limit-input" id="input-07" min="0">
+            </div>
+            <div class="limit-error" id="limit-error"></div>
+            <button class="btn btn-save" id="btn-save-limits" style="display: block;" onclick="saveLimits()">保存配置</button>
+          </div>
+        </div>
+
+        <div class="control-card">
+          <div class="control-title">添加消费</div>
+          <div class="form-group">
+            <label class="form-label">消费金额 (元)</label>
+            <input type="number" class="form-input" id="consumption-amount" placeholder="请输入金额" min="1">
+          </div>
+          <button class="btn btn-consumption" onclick="addConsumption()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            添加消费
+          </button>
+        </div>
+
+        <div class="control-card">
+          <div class="control-title">添加分期</div>
+          <div class="form-group">
+            <label class="form-label">分期金额 (元)</label>
+            <input type="number" class="form-input" id="installment-amount" placeholder="请输入金额" min="1">
+          </div>
+          <button class="btn btn-installment" onclick="addInstallment()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+添加分期
+          </button>
+        </div>
+
+        <div class="control-card">
+          <div class="control-title">添加还款</div>
+          <div class="form-group">
+            <label class="form-label">还款金额 (元)</label>
+            <input type="number" class="form-input" id="repayment-amount" placeholder="请输入金额" min="1">
+          </div>
+          <button class="btn btn-repayment" onclick="addRepayment()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="1 4 1 10 7 10"></polyline>
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+            </svg>
+            添加还款
+          </button>
+        </div>
+
+        <div class="control-card">
+          <div class="control-title">交易记录</div>
+          <div class="transaction-list" id="transaction-list"><div class="empty-message">暂无交易记录</div></div>
+        </div>
+
+        <div class="result-panel">
+          <div class="result-title">客户最终可用额度</div>
+          <div class="result-item">
+            <span class="result-label">可用消费额度</span>
+            <span class="result-value consumption" id="final-consumption">¥12,000</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">可用分期额度</span>
+            <span class="result-value installment" id="final-installment">¥20,000</span>
+          </div>
+        </div>
+
+        <button class="btn btn-reset" onclick="resetAll()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="1 4 1 10 7 10"></polyline>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+          </svg>
+          重置所有
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 初始额度配置
+    const INITIAL_LIMITS = {
+      node01: 12000,  // 消费额度
+      node03: 20000,  // 分期额度
+      node07: 20000,  // 综授额度
+      node13: 8000    // 分期独享额度
+    };
+
+// 当前状态
+    let state = {
+      node01Used: 0,
+      node03Used: 0,
+      node07Used: 0,
+      node13Used: 0,
+      transactions: []
+    };
+
+    // 额度编辑锁定状态
+    let isEditingLocked = true;
+
+    // 格式化金额
+    function formatCurrency(amount) {
+      return '¥' + amount.toLocaleString();
+    }
+
+    // 更新UI
+    function updateUI() {
+      // 计算各节点可用额度
+      const node01Available = INITIAL_LIMITS.node01 - state.node01Used;
+      const node03Available = INITIAL_LIMITS.node03 - state.node03Used;
+      const node07Available = INITIAL_LIMITS.node07 - state.node07Used;
+      const node13Available = INITIAL_LIMITS.node13 - state.node13Used;
+
+      // 更新节点显示
+      updateNode('01', node01Available, INITIAL_LIMITS.node01);
+      updateNode('03', node03Available, INITIAL_LIMITS.node03);
+      updateNode('07', node07Available, INITIAL_LIMITS.node07);
+      updateNode('13', node13Available, INITIAL_LIMITS.node13);
+
+      // 计算客户最终可用额度
+      // 消费额度 = min(01可用, 07可用)
+      const finalConsumption = Math.min(node01Available, node07Available);
+      // 分期额度 = 01可用 + 13可用
+      const finalInstallment = node01Available + node13Available;
+
+      // 更新最终结果
+      const finalConsumptionEl = document.getElementById('final-consumption');
+      const finalInstallmentEl = document.getElementById('final-installment');
+
+      finalConsumptionEl.textContent = formatCurrency(finalConsumption);
+      finalConsumptionEl.className = 'result-value ' + (finalConsumption === 0 ? 'zero' : 'consumption');
+
+      finalInstallmentEl.textContent = formatCurrency(finalInstallment);
+      finalInstallmentEl.className = 'result-value ' + (finalInstallment === 0 ? 'zero' : 'installment');
+
+// 更新交易记录
+      updateTransactionList();
+
+      // 更新额度输入框
+      document.getElementById('input-01').value = INITIAL_LIMITS.node01;
+      document.getElementById('input-03').value = INITIAL_LIMITS.node03;
+      document.getElementById('input-13').value = INITIAL_LIMITS.node13;
+      document.getElementById('input-07').value = INITIAL_LIMITS.node07;
+
+      // 更新公式区域的显示值
+      document.getElementById('formula-01').textContent = INITIAL_LIMITS.node01;
+      document.getElementById('formula-03').textContent = INITIAL_LIMITS.node03;
+      document.getElementById('formula-13').textContent = INITIAL_LIMITS.node13;
+      document.getElementById('formula-07').textContent = INITIAL_LIMITS.node07;
+      document.getElementById('formula-01b').textContent = INITIAL_LIMITS.node01;
+      document.getElementById('formula-03b').textContent = INITIAL_LIMITS.node03;
+      document.getElementById('formula-07b').textContent = INITIAL_LIMITS.node07;
+
+      // 更新输入框禁用状态和保存按钮
+      const inputs = ['input-01', 'input-03', 'input-13', 'input-07'];
+      inputs.forEach(id => {
+        document.getElementById(id).disabled = isEditingLocked;
+      });
+      document.getElementById('btn-save-limits').style.display = isEditingLocked ? 'none' : 'block';
+    }
+
+// 更新单个节点显示
+    function updateNode(nodeId, available, total) {
+      const used = total - available;
+      const percentage = (used / total) * 100;
+
+      const progressEl = document.getElementById(`progress-${nodeId}`);
+      const availableEl = document.getElementById(`available-${nodeId}`);
+      const totalEl = document.getElementById(`total-${nodeId}`);
+
+      // 处理负数情况
+      const absUsed = Math.abs(used);
+      const absPercentage = (absUsed / total) * 100;
+      const cappedPercentage = Math.min(absPercentage, 100);
+
+      progressEl.style.width = cappedPercentage + '%';
+      progressEl.innerHTML = absPercentage > 15 ? formatCurrency(used) : '';
+
+      // 根据使用率设置颜色（负数用红色）
+      progressEl.className = 'progress-fill';
+      if (used < 0) {
+        progressEl.classList.add('used');
+      } else if (percentage >= 100) {
+        progressEl.classList.add('used');
+      } else if (percentage >= 70) {
+        progressEl.classList.add('warning');
+      } else {
+        progressEl.classList.add('normal');
+      }
+
+availableEl.textContent = formatCurrency(available);
+      availableEl.className = 'stat-available' + (available < 0 ? ' negative' : '');
+
+      if (totalEl) {
+        totalEl.textContent = total;
+      }
+    }
+
+    // 添加消费
+    function addConsumption() {
+      const amountInput = document.getElementById('consumption-amount');
+      const amount = parseInt(amountInput.value);
+
+      if (!amount || amount <= 0) {
+        alert('请输入有效的消费金额');
+        return;
+      }
+
+      // 检查07节点是否足够
+      const node07Available = INITIAL_LIMITS.node07 - state.node07Used;
+      if (amount > node07Available) {
+        alert(`综授额度不足！可用额度: ${formatCurrency(node07Available)}`);
+        return;
+      }
+
+      // 检查01节点是否足够
+      const node01Available = INITIAL_LIMITS.node01 - state.node01Used;
+      if (amount > node01Available) {
+        alert(`消费额度不足！可用额度: ${formatCurrency(node01Available)}`);
+        return;
+      }
+
+      // 消费占用01和07
+      state.node01Used += amount;
+      state.node07Used += amount;
+
+      // 记录交易
+      state.transactions.push({
+        type: 'consumption',
+        amount: amount,
+        time: new Date()
+      });
+
+amountInput.value = '';
+      isEditingLocked = true;
+      updateUI();
+    }
+
+    // 添加分期
+    function addInstallment() {
+      const amountInput = document.getElementById('installment-amount');
+      const amount = parseInt(amountInput.value);
+
+      if (!amount || amount <= 0) {
+        alert('请输入有效的分期金额');
+        return;
+      }
+
+      // 检查07节点是否足够
+      const node07Available = INITIAL_LIMITS.node07 - state.node07Used;
+      if (amount > node07Available) {
+        alert(`综授额度不足！可用额度: ${formatCurrency(node07Available)}`);
+        return;
+      }
+
+      // 检查03节点是否足够
+      const node03Available = INITIAL_LIMITS.node03 - state.node03Used;
+      if (amount > node03Available) {
+        alert(`分期额度不足！可用额度: ${formatCurrency(node03Available)}`);
+        return;
+      }
+
+      // 计算分期可用额度 = 13剩余 + 01剩余（取小原则）
+      const node13Available = INITIAL_LIMITS.node13 - state.node13Used;
+      const node01Available = INITIAL_LIMITS.node01 - state.node01Used;
+      const installmentAvailable = node13Available + node01Available;
+
+      if (amount > installmentAvailable) {
+        alert(`分期可用额度不足！可用额度: ${formatCurrency(installmentAvailable)}`);
+        return;
+      }
+
+      // 分期占用逻辑：优先使用13，13不够用01
+      let remainingAmount = amount;
+      let used13Amount = 0;
+      let used01Amount = 0;
+
+      // 先用13
+      if (remainingAmount > 0) {
+        const useFrom13 = Math.min(remainingAmount, node13Available);
+        used13Amount = useFrom13;
+        state.node13Used += useFrom13;
+        remainingAmount -= useFrom13;
+      }
+
+      // 13用尽后用01
+      if (remainingAmount > 0) {
+        used01Amount = remainingAmount;
+        state.node01Used += remainingAmount;
+      }
+
+      // 分期同时占用03和07
+      state.node03Used += amount;
+      state.node07Used += amount;
+
+// 记录交易（保存当时的占用情况，用于后续抛帐/退货）
+      state.transactions.push({
+        type: 'installment',
+        amount: amount,
+        time: new Date(),
+        used13: used13Amount,
+        used01: used01Amount,
+        remaining13: used13Amount,  // 当前未抛金额中还占13多少
+        remaining01: used01Amount    // 当前未抛金额中还占01多少
+      });
+
+amountInput.value = '';
+      isEditingLocked = true;
+      updateUI();
+    }
+
+    // 添加还款
+    function addRepayment() {
+      const amountInput = document.getElementById('repayment-amount');
+      const amount = parseInt(amountInput.value);
+
+      if (!amount || amount <= 0) {
+        alert('请输入有效的还款金额');
+        return;
+      }
+
+      // 还款恢复01和07节点
+      state.node01Used -= amount;
+      state.node07Used -= amount;
+
+      // 记录交易
+      state.transactions.push({
+        type: 'repayment',
+        amount: amount,
+        time: new Date()
+      });
+
+      amountInput.value = '';
+      isEditingLocked = true;
+      updateUI();
+    }
+
+    // 更新交易列表
+    function updateTransactionList() {
+      const listEl = document.getElementById('transaction-list');
+
+      if (state.transactions.length === 0) {
+        listEl.innerHTML = '<div class="empty-message">暂无交易记录</div>';
+        return;
+      }
+
+const items = state.transactions.slice().reverse().map((t, index) => {
+        const typeClass = t.type === 'consumption' ? 'consumption' : (t.type === 'installment' ? 'installment' : 'repayment');
+        const typeName = t.type === 'consumption' ? '消费' : (t.type === 'installment' ? '分期' : '还款');
+        const time = t.time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+
+        // 分期交易增加抛帐和退货按钮
+        let actionsHtml = '';
+        if (t.type === 'installment') {
+// 退货后不能再抛帐，抛帐后不可退货
+          const paochangDisabled = t.paochangCount >= 2 || (t.tuihuoCount >= 1) ? 'disabled' : '';
+          const tuihuoDisabled = (t.tuihuoCount >= 1) || (t.paochangCount >= 1) ? 'disabled' : '';
+
+          // 计算抛帐详情
+          let paochangDetail = '';
+          if (t.paochangCount > 0) {
+            paochangDetail = `<span class="action-log">已抛${t.paochangCount}次</span>`;
+          }
+
+// 计算当前未抛金额占用信息
+          let usedInfo = '';
+          const remaining13 = t.remaining13 || 0;
+          const remaining01 = t.remaining01 || 0;
+          if (remaining13 > 0 || remaining01 > 0) {
+            const parts = [];
+            if (remaining13 > 0) parts.push(`13:${formatCurrency(remaining13)}`);
+            if (remaining01 > 0) parts.push(`01:${formatCurrency(remaining01)}`);
+            usedInfo = `<div class="transaction-item-detail">未抛占: ${parts.join(' + ')}</div>`;
+          }
+
+          // 计算已抛帐和退货恢复的金额
+          let recoveryInfo = '';
+          if (t.paochangRecovered > 0 || t.tuihuoRecovered > 0) {
+            const parts = [];
+            if (t.paochangRecovered > 0) parts.push(`抛帐恢复:${formatCurrency(t.paochangRecovered)}`);
+            if (t.tuihuoRecovered > 0) parts.push(`退货恢复:${formatCurrency(t.tuihuoRecovered)}`);
+            recoveryInfo = `<div class="transaction-item-detail">${parts.join(', ')}</div>`;
+          }
+
+          actionsHtml = `
+            <div class="transaction-actions">
+              <button class="btn-action paochang" ${paochangDisabled} onclick="paochang(${state.transactions.length - 1 - index})">
+                抛帐(${2 - (t.paochangCount || 0)})
+              </button>
+              <button class="btn-action tuihuo" ${tuihuoDisabled} onclick="tuihuo(${state.transactions.length - 1 - index})">
+                退货
+              </button>
+            </div>
+          `;
+
+          return `
+            <div class="transaction-item">
+              <div class="transaction-item-info">
+                <span class="transaction-type ${typeClass}">${typeName}</span>
+                <span style="color:#fff;font-weight:600;">${formatCurrency(t.amount)}</span>
+                <span style="color:rgba(255,255,255,0.4);font-size:10px;">${time}</span>
+                ${paochangDetail}
+              </div>
+              ${usedInfo}
+              ${recoveryInfo}
+              ${actionsHtml}
+            </div>
+          `;
+        }
+
+        return `
+          <div class="transaction-item">
+            <span class="transaction-type ${typeClass}">${typeName}</span>
+            <span style="color:#fff;font-weight:600;">${formatCurrency(t.amount)}</span>
+            <span style="color:rgba(255,255,255,0.4);font-size:10px;">${time}</span>
+          </div>
+        `;
+      }).join('');
+
+      listEl.innerHTML = items;
+    }
+
+    // 抛帐功能
+function paochang(transactionIndex) {
+      const t = state.transactions[transactionIndex];
+      if (!t || t.type !== 'installment') return;
+      if ((t.paochangCount || 0) >= 2) return;
+
+      // 计算当前剩余未抛金额
+      const remaining = (t.remaining01 || 0) + (t.remaining13 || 0);
+      if (remaining <= 0) return;
+
+      const currentPaochangCount = t.paochangCount || 0;
+
+      // 第一次抛抛出剩余的一半，第二次全抛
+      let paochangAmount;
+      if (currentPaochangCount === 0) {
+        paochangAmount = Math.floor(remaining / 2);
+      } else {
+        paochangAmount = remaining; // 第二次全抛
+      }
+
+      // 恢复逻辑：优先恢复remaining01，再恢复remaining13
+      let toRecover01 = Math.min(paochangAmount, t.remaining01 || 0);
+      let toRecover13 = paochangAmount - toRecover01;
+
+      // 执行恢复
+      state.node01Used -= toRecover01;
+      state.node13Used -= toRecover13;
+
+      // 抛出金额占01
+      state.node01Used += paochangAmount;
+
+      // 03节点用抛出金额恢复
+      state.node03Used -= paochangAmount;
+
+      // 更新remaining
+      t.remaining01 = (t.remaining01 || 0) - toRecover01;
+      t.remaining13 = (t.remaining13 || 0) - toRecover13;
+
+      // 更新抛帐计数
+      t.paochangCount = currentPaochangCount + 1;
+
+      updateUI();
+    }
+
+    // 退货功能
+    function tuihuo(transactionIndex) {
+      const t = state.transactions[transactionIndex];
+      if (!t || t.type !== 'installment') return;
+      if ((t.tuihuoCount || 0) >= 1) return;
+
+      // 退货：用全部金额恢复当时占用的13或01节点
+      // 03节点全部直接恢复
+      const toRecover01 = t.used01 || 0;
+      const toRecover13 = t.used13 || 0;
+
+      // 恢复01和13节点
+      state.node01Used -= toRecover01;
+      state.node13Used -= toRecover13;
+
+      // 恢复03节点（全部金额）
+      state.node03Used -= t.amount;
+
+      // 恢复07节点
+      state.node07Used -= t.amount;
+
+      // 更新退货计数和恢复金额
+      t.tuihuoCount = 1;
+      t.tuihuoRecovered = t.amount;
+
+      updateUI();
+    }
+
+// 重置所有
+    function resetAll() {
+      state = {
+        node01Used: 0,
+        node03Used: 0,
+        node07Used: 0,
+        node13Used: 0,
+        transactions: []
+      };
+      isEditingLocked = false;
+      document.getElementById('limit-error').textContent = '';
+      updateUI();
+    }
+
+    // 验证额度配置
+    function validateLimits(new01, new03, new13, new07) {
+      if (new01 < 0 || new03 < 0 || new13 < 0 || new07 < 0) {
+        return '额度不能为负数';
+      }
+      if (new01 + new13 !== new03) {
+        return '03 必须等于 01 + 13';
+      }
+      if (new03 > new07) {
+        return '03 不能大于 07';
+      }
+      if (new01 > new07) {
+        return '01 不能大于 07';
+      }
+      return null;
+    }
+
+    // 保存额度配置
+    function saveLimits() {
+      const new01 = parseInt(document.getElementById('input-01').value) || 0;
+      const new03 = parseInt(document.getElementById('input-03').value) || 0;
+      const new13 = parseInt(document.getElementById('input-13').value) || 0;
+      const new07 = parseInt(document.getElementById('input-07').value) || 0;
+
+      const error = validateLimits(new01, new03, new13, new07);
+      if (error) {
+        document.getElementById('limit-error').textContent = error;
+        return;
+      }
+
+      INITIAL_LIMITS.node01 = new01;
+      INITIAL_LIMITS.node03 = new03;
+      INITIAL_LIMITS.node13 = new13;
+      INITIAL_LIMITS.node07 = new07;
+
+      isEditingLocked = true;
+      document.getElementById('limit-error').textContent = '';
+      updateUI();
+    }
+
+// 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      // 刷新页面时解锁编辑（等同于点重置所有）
+      isEditingLocked = false;
+      updateUI();
+
+      // 回车触发表单提交
+      document.getElementById('consumption-amount').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') addConsumption();
+      });
+      document.getElementById('installment-amount').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') addInstallment();
+      });
+      document.getElementById('repayment-amount').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') addRepayment();
+      });
+
+      // 额度输入框输入时清除错误
+      ['input-01', 'input-03', 'input-13', 'input-07'].forEach(id => {
+        document.getElementById(id).addEventListener('input', function() {
+          document.getElementById('limit-error').textContent = '';
+        });
+      });
+    });
+  </script>
+
+<style>
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+</style>
+
+<script>
+/**
+ * Iframe 元素高亮注入脚本
+ * 需要在目标网站中引入此脚本来支持跨域 iframe 高亮功能
+ *
+ * 使用方法：
+ * 1. 将此脚本添加到目标网站的 HTML 中
+ * 2. 或通过浏览器扩展、用户脚本等方式注入
+ */
+
+(function () {
+  "use strict";
+
+  // 检查是否在 iframe 中
+  if (window.self === window.top) {
+    return; // 不在 iframe 中，不执行
+  }
+
+  // 检查是否已经初始化过
+  if (window.__iframeHighlightInitialized) {
+    return;
+  }
+  window.__iframeHighlightInitialized = true;
+  console.log("Iframe 高亮脚本已加载");
+
+  // 创建高亮覆盖层
+  var overlay = document.createElement("div");
+  overlay.id = "iframe-highlight-overlay";
+  overlay.style.cssText = "\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100vw;\n    height: 100vh;\n    pointer-events: none;\n    z-index: 999999;\n    overflow: hidden;\n  ";
+
+  // 创建悬停高亮框（虚线边框）
+  var highlightBox = document.createElement("div");
+  highlightBox.id = "iframe-highlight-box";
+  highlightBox.style.cssText = "\n    position: absolute;\n    border: 2px dashed #007AFF;\n    background: rgba(0, 122, 255, 0.08);\n    pointer-events: none;\n    display: none;\n    transition: all 0.1s ease;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);\n    border-radius: 2px;\n  ";
+
+  // 创建选中节点的常驻高亮框（实线边框）
+  var selectedBox = document.createElement("div");
+  selectedBox.id = "iframe-selected-box";
+  selectedBox.style.cssText = "\n    position: absolute;\n    border: 2px solid #007AFF;\n    pointer-events: none;\n    display: none;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 107, 53, 0.4);\n    border-radius: 2px;\n    z-index: 1000000;\n  ";
+
+  // 创建悬停标签显示
+  var tagLabel = document.createElement("div");
+  tagLabel.id = "iframe-tag-label";
+  tagLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 2px 6px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 2px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000001;\n    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);\n    font-weight: 500;\n  ";
+
+  // 创建选中节点标签
+  var selectedLabel = document.createElement("div");
+  selectedLabel.id = "iframe-selected-label";
+  selectedLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 3px 8px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 3px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000002;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);\n    font-weight: 600;\n  ";
+  overlay.appendChild(highlightBox);
+  overlay.appendChild(selectedBox);
+  overlay.appendChild(tagLabel);
+  overlay.appendChild(selectedLabel);
+  document.body.appendChild(overlay);
+
+  // 存储当前选中的元素
+  var selectedElement = null;
+  var highlightEnabled = false;
+
+  // 更新选中元素的高亮显示
+  function updateSelectedHighlight(element) {
+    console.log("updateSelectedHighlight called with:", element);
+    if (!element) {
+      selectedBox.style.display = "none";
+      selectedLabel.style.display = "none";
+      selectedElement = null;
+      console.log("Cleared selected highlight");
+      return;
+    }
+    selectedElement = element;
+    var rect = element.getBoundingClientRect();
+    console.log("Selected element rect:", rect);
+
+    // 更新选中高亮框位置
+    selectedBox.style.display = "block";
+    selectedBox.style.left = "".concat(rect.left - 2, "px");
+    selectedBox.style.top = "".concat(rect.top - 2, "px");
+    selectedBox.style.width = "".concat(rect.width + 4, "px");
+    selectedBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新选中标签位置和内容
+    selectedLabel.style.display = "block";
+    selectedLabel.textContent = "\u2713 <".concat(element.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 28;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 5) {
+      labelTop = rect.bottom + 5;
+    }
+
+    // 如果标签会超出右侧，向左调整
+    var labelWidth = selectedLabel.offsetWidth || 100; // 预估宽度
+    if (labelLeft + labelWidth > window.innerWidth - 10) {
+      labelLeft = window.innerWidth - labelWidth - 10;
+    }
+    selectedLabel.style.left = "".concat(Math.max(5, labelLeft), "px");
+    selectedLabel.style.top = "".concat(labelTop, "px");
+    console.log("Selected highlight positioned at:", {
+      left: selectedBox.style.left,
+      top: selectedBox.style.top,
+      width: selectedBox.style.width,
+      height: selectedBox.style.height
+    });
+  }
+  function getElementSelector(element) {
+    if (!(element instanceof Element)) throw new Error('Argument must be a DOM element');
+    var segments = [];
+    var current = element;
+    while (current !== document.documentElement) {
+      var selector = '';
+      // 优先检查唯一ID
+      if (current.id && document.querySelectorAll("#".concat(current.id)).length === 1) {
+        segments.unshift("#".concat(current.id));
+        break; // ID唯一，无需继续向上
+      }
+
+      // 生成类名选择器（取第一个有效类名）
+      var classes = Array.from(current.classList).filter(function (c) {
+        return !c.startsWith('js-');
+      });
+      var className = classes.length > 0 ? ".".concat(classes[0]) : '';
+
+      // 生成位置索引（nth-child）
+      var tag = current.tagName.toLowerCase();
+      if (!className) {
+        var siblings = Array.from(current.parentNode.children);
+        var index = siblings.findIndex(function (el) {
+          return el === current;
+        }) + 1;
+        selector = "".concat(tag, ":nth-child(").concat(index, ")");
+      } else {
+        selector = className;
+      }
+      segments.unshift(selector);
+      current = current.parentElement;
+    }
+
+    // 处理根元素
+    if (current === document.documentElement) {
+      segments.unshift('html');
+    }
+    return segments.join(' > ');
+  }
+
+  // 获取元素文本内容
+  function getElementText(element) {
+    var _element$textContent;
+    if (element.tagName === "INPUT") {
+      return element.value || element.placeholder || "";
+    }
+    if (element.tagName === "TEXTAREA") {
+      return element.value || element.placeholder || "";
+    }
+    var text = ((_element$textContent = element.textContent) === null || _element$textContent === void 0 ? void 0 : _element$textContent.trim()) || "";
+    return text.length > 50 ? text.substring(0, 50) + "..." : text;
+  }
+
+  // 获取元素属性信息
+  function getElementAttributes(element) {
+    var attrs = {};
+    for (var i = 0; i < element.attributes.length; i++) {
+      var attr = element.attributes[i];
+      attrs[attr.name] = attr.value;
+    }
+    return attrs;
+  }
+
+  // 鼠标悬停事件处理
+  function handleMouseOver(e) {
+    if (!highlightEnabled) return;
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
+
+    // 避免高亮 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
+
+    // 如果是已选中的元素，不显示悬停高亮
+    if (target === selectedElement) {
+      highlightBox.style.display = "none";
+      tagLabel.style.display = "none";
+      return;
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+
+    // 更新悬停高亮框位置
+    highlightBox.style.display = "block";
+    highlightBox.style.left = "".concat(rect.left - 2, "px");
+    highlightBox.style.top = "".concat(rect.top - 2, "px");
+    highlightBox.style.width = "".concat(rect.width + 4, "px");
+    highlightBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新标签位置和内容
+    tagLabel.style.display = "block";
+    tagLabel.textContent = "<".concat(target.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 22;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 0) {
+      labelTop = rect.bottom + 5;
+    }
+
+    // 如果标签会超出右侧，向左调整
+    if (labelLeft + tagLabel.offsetWidth > window.innerWidth) {
+      labelLeft = window.innerWidth - tagLabel.offsetWidth - 5;
+    }
+    tagLabel.style.left = "".concat(Math.max(0, labelLeft), "px");
+    tagLabel.style.top = "".concat(labelTop, "px");
+
+    // 发送消息到父窗口
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
+    };
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 鼠标离开事件处理
+  function handleMouseOut(e) {
+    if (!highlightEnabled) return;
+    var relatedTarget = e.relatedTarget;
+
+    // 如果鼠标移动到高亮相关元素上，不隐藏高亮
+    if (relatedTarget && (relatedTarget === highlightBox || relatedTarget === tagLabel || relatedTarget === overlay || relatedTarget === selectedBox || relatedTarget === selectedLabel)) {
+      return;
+    }
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: null,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 点击事件处理
+  function handleClick(e) {
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
+
+    // 避免处理 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
+
+    // 检查是否是交互元素，这些元素需要保留默认行为
+    var isInteractiveElement = ['input', 'textarea', 'select', 'button', 'a'].includes(target.tagName.toLowerCase());
+
+    // 如果高亮功能启用，对于非交互元素阻止默认行为和事件传播
+    if (highlightEnabled) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+    console.log("Element clicked:", {
+      tagName: target.tagName,
+      selector: selector,
+      rect: rect
+    });
+
+    // 立即更新选中高亮
+    updateSelectedHighlight(target);
+
+    // 隐藏悬停高亮，因为现在是选中状态
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
+    };
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-click",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 监听来自父窗口的消息
+  function handleParentMessage(event) {
+    console.log("Received message from parent:", event.data);
+    if (event.data.type === "iframe-highlight-toggle") {
+      var enabled = event.data.enabled;
+      console.log("Highlight toggle:", enabled);
+      if (enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "enable-iframe-highlight") {
+      console.log("Enable iframe highlight");
+      enableHighlight();
+    } else if (event.data.type === "disable-iframe-highlight") {
+      console.log("Disable iframe highlight");
+      disableHighlight();
+    } else if (event.data.type === "toggle-iframe-highlight") {
+      var _enabled = event.data.enabled !== undefined ? event.data.enabled : !highlightEnabled;
+      console.log("Toggle iframe highlight to:", _enabled);
+      if (_enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "update-selected-element") {
+      var selector = event.data.selector;
+      console.log("Update selected element with selector:", selector);
+      if (selector) {
+        try {
+          var element = document.querySelector(selector);
+          console.log("Found element by selector:", element);
+          updateSelectedHighlight(element);
+        } catch (error) {
+          console.warn("Failed to select element:", error);
+          updateSelectedHighlight(null);
+        }
+      } else {
+        updateSelectedHighlight(null);
+      }
+    } else if (event.data.type === "clear-selected-element") {
+      console.log("Clear selected element");
+      updateSelectedHighlight(null);
+    }
+  }
+
+  // 启用高亮功能
+  function enableHighlight() {
+    console.log("Enabling highlight");
+    document.addEventListener("mouseover", handleMouseOver, true);
+    document.addEventListener("mouseout", handleMouseOut, true);
+    document.addEventListener("click", handleClick, true);
+    highlightEnabled = true;
+    overlay.style.display = "block";
+  }
+
+  // 禁用高亮功能
+  function disableHighlight() {
+    console.log("Disabling highlight");
+    highlightEnabled = false;
+    // 保持事件监听器，但通过 highlightEnabled 变量控制行为
+    // 这样可以保留选中状态的显示
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    // 不隐藏 selectedBox 和 selectedLabel，保留选中状态
+  }
+
+  // 完全禁用高亮功能（移除所有监听器）
+  function fullyDisableHighlight() {
+    console.log("Fully disabling highlight");
+    highlightEnabled = false;
+    document.removeEventListener("mouseover", handleMouseOver, true);
+    document.removeEventListener("mouseout", handleMouseOut, true);
+    document.removeEventListener("click", handleClick, true);
+    overlay.style.display = "none";
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    selectedBox.style.display = "none";
+    selectedLabel.style.display = "none";
+  }
+
+  // 添加事件监听
+  enableHighlight();
+  window.addEventListener("message", handleParentMessage);
+
+  // 暴露全局函数供外部调用
+  window.__iframeHighlightControl = {
+    enable: enableHighlight,
+    disable: disableHighlight,
+    fullyDisable: fullyDisableHighlight,
+    isEnabled: function isEnabled() {
+      return highlightEnabled;
+    },
+    getSelectedElement: function getSelectedElement() {
+      return selectedElement;
+    },
+    updateSelected: updateSelectedHighlight,
+    // 通过消息发送开关控制
+    sendToggleMessage: function sendToggleMessage(enabled) {
+      window.parent.postMessage({
+        type: 'iframe-highlight-status',
+        enabled: enabled || highlightEnabled,
+        source: 'iframe-highlight-injector'
+      }, '*');
+    }
+  };
+
+  // 通知父窗口脚本已加载
+  try {
+    window.parent.postMessage({
+      type: "iframe-highlight-ready",
+      data: {
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        timestamp: Date.now()
+      },
+      source: "iframe-highlight-injector"
+    }, "*");
+  } catch (error) {
+    console.warn("无法发送就绪消息到父窗口:", error);
+  }
+
+  // 清理函数
+  window.__iframeHighlightCleanup = function () {
+    fullyDisableHighlight();
+    window.removeEventListener("message", handleParentMessage);
+    if (overlay.parentElement) {
+      overlay.parentElement.removeChild(overlay);
+    }
+    delete window.__iframeHighlightInitialized;
+    delete window.__iframeHighlightCleanup;
+  };
+})();
+
+</script>
+
+<script>
+/**
+ * Iframe 元素高亮注入脚本
+ * 需要在目标网站中引入此脚本来支持跨域 iframe 高亮功能
+ *
+ * 使用方法：
+ * 1. 将此脚本添加到目标网站的 HTML 中
+ * 2. 或通过浏览器扩展、用户脚本等方式注入
+ */
+
+(function () {
+  "use strict";
+
+  // 检查是否在 iframe 中
+  if (window.self === window.top) {
+    return; // 不在 iframe 中，不执行
+  }
+
+  // 检查是否已经初始化过
+  if (window.__iframeHighlightInitialized) {
+    return;
+  }
+  window.__iframeHighlightInitialized = true;
+  console.log("Iframe 高亮脚本已加载");
+
+  // 创建高亮覆盖层
+  var overlay = document.createElement("div");
+  overlay.id = "iframe-highlight-overlay";
+  overlay.style.cssText = "\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100vw;\n    height: 100vh;\n    pointer-events: none;\n    z-index: 999999;\n    overflow: hidden;\n  ";
+
+  // 创建悬停高亮框（虚线边框）
+  var highlightBox = document.createElement("div");
+  highlightBox.id = "iframe-highlight-box";
+  highlightBox.style.cssText = "\n    position: absolute;\n    border: 2px dashed #007AFF;\n    background: rgba(0, 122, 255, 0.08);\n    pointer-events: none;\n    display: none;\n    transition: all 0.1s ease;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);\n    border-radius: 2px;\n  ";
+
+  // 创建选中节点的常驻高亮框（实线边框）
+  var selectedBox = document.createElement("div");
+  selectedBox.id = "iframe-selected-box";
+  selectedBox.style.cssText = "\n    position: absolute;\n    border: 2px solid #007AFF;\n    pointer-events: none;\n    display: none;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 107, 53, 0.4);\n    border-radius: 2px;\n    z-index: 1000000;\n  ";
+
+  // 创建悬停标签显示
+  var tagLabel = document.createElement("div");
+  tagLabel.id = "iframe-tag-label";
+  tagLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 2px 6px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 2px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000001;\n    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);\n    font-weight: 500;\n  ";
+
+  // 创建选中节点标签
+  var selectedLabel = document.createElement("div");
+  selectedLabel.id = "iframe-selected-label";
+  selectedLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 3px 8px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 3px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000002;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);\n    font-weight: 600;\n  ";
+  overlay.appendChild(highlightBox);
+  overlay.appendChild(selectedBox);
+  overlay.appendChild(tagLabel);
+  overlay.appendChild(selectedLabel);
+  document.body.appendChild(overlay);
+
+  // 存储当前选中的元素
+  var selectedElement = null;
+  var highlightEnabled = false;
+
+  // 更新选中元素的高亮显示
+  function updateSelectedHighlight(element) {
+    console.log("updateSelectedHighlight called with:", element);
+    if (!element) {
+      selectedBox.style.display = "none";
+      selectedLabel.style.display = "none";
+      selectedElement = null;
+      console.log("Cleared selected highlight");
+      return;
+    }
+    selectedElement = element;
+    var rect = element.getBoundingClientRect();
+    console.log("Selected element rect:", rect);
+
+    // 更新选中高亮框位置
+    selectedBox.style.display = "block";
+    selectedBox.style.left = "".concat(rect.left - 2, "px");
+    selectedBox.style.top = "".concat(rect.top - 2, "px");
+    selectedBox.style.width = "".concat(rect.width + 4, "px");
+    selectedBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新选中标签位置和内容
+    selectedLabel.style.display = "block";
+    selectedLabel.textContent = "\u2713 <".concat(element.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 28;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 5) {
+      labelTop = rect.bottom + 5;
+    }
+
+    // 如果标签会超出右侧，向左调整
+    var labelWidth = selectedLabel.offsetWidth || 100; // 预估宽度
+    if (labelLeft + labelWidth > window.innerWidth - 10) {
+      labelLeft = window.innerWidth - labelWidth - 10;
+    }
+    selectedLabel.style.left = "".concat(Math.max(5, labelLeft), "px");
+    selectedLabel.style.top = "".concat(labelTop, "px");
+    console.log("Selected highlight positioned at:", {
+      left: selectedBox.style.left,
+      top: selectedBox.style.top,
+      width: selectedBox.style.width,
+      height: selectedBox.style.height
+    });
+  }
+  function getElementSelector(element) {
+    if (!(element instanceof Element)) throw new Error('Argument must be a DOM element');
+    var segments = [];
+    var current = element;
+    while (current !== document.documentElement) {
+      var selector = '';
+      // 优先检查唯一ID
+      if (current.id && document.querySelectorAll("#".concat(current.id)).length === 1) {
+        segments.unshift("#".concat(current.id));
+        break; // ID唯一，无需继续向上
+      }
+
+      // 生成类名选择器（取第一个有效类名）
+      var classes = Array.from(current.classList).filter(function (c) {
+        return !c.startsWith('js-');
+      });
+      var className = classes.length > 0 ? ".".concat(classes[0]) : '';
+
+      // 生成位置索引（nth-child）
+      var tag = current.tagName.toLowerCase();
+      if (!className) {
+        var siblings = Array.from(current.parentNode.children);
+        var index = siblings.findIndex(function (el) {
+          return el === current;
+        }) + 1;
+        selector = "".concat(tag, ":nth-child(").concat(index, ")");
+      } else {
+        selector = className;
+      }
+      segments.unshift(selector);
+      current = current.parentElement;
+    }
+
+    // 处理根元素
+    if (current === document.documentElement) {
+      segments.unshift('html');
+    }
+    return segments.join(' > ');
+  }
+
+  // 获取元素文本内容
+  function getElementText(element) {
+    var _element$textContent;
+    if (element.tagName === "INPUT") {
+      return element.value || element.placeholder || "";
+    }
+    if (element.tagName === "TEXTAREA") {
+      return element.value || element.placeholder || "";
+    }
+    var text = ((_element$textContent = element.textContent) === null || _element$textContent === void 0 ? void 0 : _element$textContent.trim()) || "";
+    return text.length > 50 ? text.substring(0, 50) + "..." : text;
+  }
+
+  // 获取元素属性信息
+  function getElementAttributes(element) {
+    var attrs = {};
+    for (var i = 0; i < element.attributes.length; i++) {
+      var attr = element.attributes[i];
+      attrs[attr.name] = attr.value;
+    }
+    return attrs;
+  }
+
+  // 鼠标悬停事件处理
+  function handleMouseOver(e) {
+    if (!highlightEnabled) return;
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
+
+    // 避免高亮 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
+
+    // 如果是已选中的元素，不显示悬停高亮
+    if (target === selectedElement) {
+      highlightBox.style.display = "none";
+      tagLabel.style.display = "none";
+      return;
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+
+    // 更新悬停高亮框位置
+    highlightBox.style.display = "block";
+    highlightBox.style.left = "".concat(rect.left - 2, "px");
+    highlightBox.style.top = "".concat(rect.top - 2, "px");
+    highlightBox.style.width = "".concat(rect.width + 4, "px");
+    highlightBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新标签位置和内容
+    tagLabel.style.display = "block";
+    tagLabel.textContent = "<".concat(target.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 22;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 0) {
+      labelTop = rect.bottom + 5;
+    }
+
+    // 如果标签会超出右侧，向左调整
+    if (labelLeft + tagLabel.offsetWidth > window.innerWidth) {
+      labelLeft = window.innerWidth - tagLabel.offsetWidth - 5;
+    }
+    tagLabel.style.left = "".concat(Math.max(0, labelLeft), "px");
+    tagLabel.style.top = "".concat(labelTop, "px");
+
+    // 发送消息到父窗口
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
+    };
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 鼠标离开事件处理
+  function handleMouseOut(e) {
+    if (!highlightEnabled) return;
+    var relatedTarget = e.relatedTarget;
+
+    // 如果鼠标移动到高亮相关元素上，不隐藏高亮
+    if (relatedTarget && (relatedTarget === highlightBox || relatedTarget === tagLabel || relatedTarget === overlay || relatedTarget === selectedBox || relatedTarget === selectedLabel)) {
+      return;
+    }
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: null,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 点击事件处理
+  function handleClick(e) {
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
+
+    // 避免处理 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
+
+    // 检查是否是交互元素，这些元素需要保留默认行为
+    var isInteractiveElement = ['input', 'textarea', 'select', 'button', 'a'].includes(target.tagName.toLowerCase());
+
+    // 如果高亮功能启用，对于非交互元素阻止默认行为和事件传播
+    if (highlightEnabled) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+    console.log("Element clicked:", {
+      tagName: target.tagName,
+      selector: selector,
+      rect: rect
+    });
+
+    // 立即更新选中高亮
+    updateSelectedHighlight(target);
+
+    // 隐藏悬停高亮，因为现在是选中状态
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
+    };
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-click",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 监听来自父窗口的消息
+  function handleParentMessage(event) {
+    console.log("Received message from parent:", event.data);
+    if (event.data.type === "iframe-highlight-toggle") {
+      var enabled = event.data.enabled;
+      console.log("Highlight toggle:", enabled);
+      if (enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "enable-iframe-highlight") {
+      console.log("Enable iframe highlight");
+      enableHighlight();
+    } else if (event.data.type === "disable-iframe-highlight") {
+      console.log("Disable iframe highlight");
+      disableHighlight();
+    } else if (event.data.type === "toggle-iframe-highlight") {
+      var _enabled = event.data.enabled !== undefined ? event.data.enabled : !highlightEnabled;
+      console.log("Toggle iframe highlight to:", _enabled);
+      if (_enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "update-selected-element") {
+      var selector = event.data.selector;
+      console.log("Update selected element with selector:", selector);
+      if (selector) {
+        try {
+          var element = document.querySelector(selector);
+          console.log("Found element by selector:", element);
+          updateSelectedHighlight(element);
+        } catch (error) {
+          console.warn("Failed to select element:", error);
+          updateSelectedHighlight(null);
+        }
+      } else {
+        updateSelectedHighlight(null);
+      }
+    } else if (event.data.type === "clear-selected-element") {
+      console.log("Clear selected element");
+      updateSelectedHighlight(null);
+    }
+  }
+
+  // 启用高亮功能
+  function enableHighlight() {
+    console.log("Enabling highlight");
+    document.addEventListener("mouseover", handleMouseOver, true);
+    document.addEventListener("mouseout", handleMouseOut, true);
+    document.addEventListener("click", handleClick, true);
+    highlightEnabled = true;
+    overlay.style.display = "block";
+  }
+
+  // 禁用高亮功能
+  function disableHighlight() {
+    console.log("Disabling highlight");
+    highlightEnabled = false;
+    // 保持事件监听器，但通过 highlightEnabled 变量控制行为
+    // 这样可以保留选中状态的显示
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    // 不隐藏 selectedBox 和 selectedLabel，保留选中状态
+  }
+
+  // 完全禁用高亮功能（移除所有监听器）
+  function fullyDisableHighlight() {
+    console.log("Fully disabling highlight");
+    highlightEnabled = false;
+    document.removeEventListener("mouseover", handleMouseOver, true);
+    document.removeEventListener("mouseout", handleMouseOut, true);
+    document.removeEventListener("click", handleClick, true);
+    overlay.style.display = "none";
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    selectedBox.style.display = "none";
+    selectedLabel.style.display = "none";
+  }
+
+  // 添加事件监听
+  enableHighlight();
+  window.addEventListener("message", handleParentMessage);
+
+  // 暴露全局函数供外部调用
+  window.__iframeHighlightControl = {
+    enable: enableHighlight,
+    disable: disableHighlight,
+    fullyDisable: fullyDisableHighlight,
+    isEnabled: function isEnabled() {
+      return highlightEnabled;
+    },
+    getSelectedElement: function getSelectedElement() {
+      return selectedElement;
+    },
+    updateSelected: updateSelectedHighlight,
+    // 通过消息发送开关控制
+    sendToggleMessage: function sendToggleMessage(enabled) {
+      window.parent.postMessage({
+        type: 'iframe-highlight-status',
+        enabled: enabled || highlightEnabled,
+        source: 'iframe-highlight-injector'
+      }, '*');
+    }
+  };
+
+  // 通知父窗口脚本已加载
+  try {
+    window.parent.postMessage({
+      type: "iframe-highlight-ready",
+      data: {
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        timestamp: Date.now()
+      },
+      source: "iframe-highlight-injector"
+    }, "*");
+  } catch (error) {
+    console.warn("无法发送就绪消息到父窗口:", error);
+  }
+
+  // 清理函数
+  window.__iframeHighlightCleanup = function () {
+    fullyDisableHighlight();
+    window.removeEventListener("message", handleParentMessage);
+    if (overlay.parentElement) {
+      overlay.parentElement.removeChild(overlay);
+    }
+    delete window.__iframeHighlightInitialized;
+    delete window.__iframeHighlightCleanup;
+  };
+})();
+
+</script>
+
+<script>
+/**
+ * Iframe 元素高亮注入脚本
+ * 需要在目标网站中引入此脚本来支持跨域 iframe 高亮功能
+ *
+ * 使用方法：
+ * 1. 将此脚本添加到目标网站的 HTML 中
+ * 2. 或通过浏览器扩展、用户脚本等方式注入
+ */
+
+(function () {
+  "use strict";
+
+  // 检查是否在 iframe 中
+  if (window.self === window.top) {
+    return; // 不在 iframe 中，不执行
+  }
+
+  // 检查是否已经初始化过
+  if (window.__iframeHighlightInitialized) {
+    return;
+  }
+  window.__iframeHighlightInitialized = true;
+  console.log("Iframe 高亮脚本已加载");
+
+  // 创建高亮覆盖层
+  var overlay = document.createElement("div");
+  overlay.id = "iframe-highlight-overlay";
+  overlay.style.cssText = "\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100vw;\n    height: 100vh;\n    pointer-events: none;\n    z-index: 999999;\n    overflow: hidden;\n  ";
+
+  // 创建悬停高亮框（虚线边框）
+  var highlightBox = document.createElement("div");
+  highlightBox.id = "iframe-highlight-box";
+  highlightBox.style.cssText = "\n    position: absolute;\n    border: 2px dashed #007AFF;\n    background: rgba(0, 122, 255, 0.08);\n    pointer-events: none;\n    display: none;\n    transition: all 0.1s ease;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);\n    border-radius: 2px;\n  ";
+
+  // 创建选中节点的常驻高亮框（实线边框）
+  var selectedBox = document.createElement("div");
+  selectedBox.id = "iframe-selected-box";
+  selectedBox.style.cssText = "\n    position: absolute;\n    border: 2px solid #007AFF;\n    pointer-events: none;\n    display: none;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 107, 53, 0.4);\n    border-radius: 2px;\n    z-index: 1000000;\n  ";
+
+  // 创建悬停标签显示
+  var tagLabel = document.createElement("div");
+  tagLabel.id = "iframe-tag-label";
+  tagLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 2px 6px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 2px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000001;\n    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);\n    font-weight: 500;\n  ";
+
+  // 创建选中节点标签
+  var selectedLabel = document.createElement("div");
+  selectedLabel.id = "iframe-selected-label";
+  selectedLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 3px 8px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 3px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000002;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);\n    font-weight: 600;\n  ";
+  overlay.appendChild(highlightBox);
+  overlay.appendChild(selectedBox);
+  overlay.appendChild(tagLabel);
+  overlay.appendChild(selectedLabel);
+  document.body.appendChild(overlay);
+
+  // 存储当前选中的元素
+  var selectedElement = null;
+  var highlightEnabled = false;
+
+  // 更新选中元素的高亮显示
+  function updateSelectedHighlight(element) {
+    console.log("updateSelectedHighlight called with:", element);
+    if (!element) {
+      selectedBox.style.display = "none";
+      selectedLabel.style.display = "none";
+      selectedElement = null;
+      console.log("Cleared selected highlight");
+      return;
+    }
+    selectedElement = element;
+    var rect = element.getBoundingClientRect();
+    console.log("Selected element rect:", rect);
+
+    // 更新选中高亮框位置
+    selectedBox.style.display = "block";
+    selectedBox.style.left = "".concat(rect.left - 2, "px");
+    selectedBox.style.top = "".concat(rect.top - 2, "px");
+    selectedBox.style.width = "".concat(rect.width + 4, "px");
+    selectedBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新选中标签位置和内容
+    selectedLabel.style.display = "block";
+    selectedLabel.textContent = "\u2713 <".concat(element.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 28;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 5) {
+      labelTop = rect.bottom + 5;
+    }
+
+    // 如果标签会超出右侧，向左调整
+    var labelWidth = selectedLabel.offsetWidth || 100; // 预估宽度
+    if (labelLeft + labelWidth > window.innerWidth - 10) {
+      labelLeft = window.innerWidth - labelWidth - 10;
+    }
+    selectedLabel.style.left = "".concat(Math.max(5, labelLeft), "px");
+    selectedLabel.style.top = "".concat(labelTop, "px");
+    console.log("Selected highlight positioned at:", {
+      left: selectedBox.style.left,
+      top: selectedBox.style.top,
+      width: selectedBox.style.width,
+      height: selectedBox.style.height
+    });
+  }
+  function getElementSelector(element) {
+    if (!(element instanceof Element)) throw new Error('Argument must be a DOM element');
+    var segments = [];
+    var current = element;
+    while (current !== document.documentElement) {
+      var selector = '';
+      // 优先检查唯一ID
+      if (current.id && document.querySelectorAll("#".concat(current.id)).length === 1) {
+        segments.unshift("#".concat(current.id));
+        break; // ID唯一，无需继续向上
+      }
+
+      // 生成类名选择器（取第一个有效类名）
+      var classes = Array.from(current.classList).filter(function (c) {
+        return !c.startsWith('js-');
+      });
+      var className = classes.length > 0 ? ".".concat(classes[0]) : '';
+
+      // 生成位置索引（nth-child）
+      var tag = current.tagName.toLowerCase();
+      if (!className) {
+        var siblings = Array.from(current.parentNode.children);
+        var index = siblings.findIndex(function (el) {
+          return el === current;
+        }) + 1;
+        selector = "".concat(tag, ":nth-child(").concat(index, ")");
+      } else {
+        selector = className;
+      }
+      segments.unshift(selector);
+      current = current.parentElement;
+    }
+
+    // 处理根元素
+    if (current === document.documentElement) {
+      segments.unshift('html');
+    }
+    return segments.join(' > ');
+  }
+
+  // 获取元素文本内容
+  function getElementText(element) {
+    var _element$textContent;
+    if (element.tagName === "INPUT") {
+      return element.value || element.placeholder || "";
+    }
+    if (element.tagName === "TEXTAREA") {
+      return element.value || element.placeholder || "";
+    }
+    var text = ((_element$textContent = element.textContent) === null || _element$textContent === void 0 ? void 0 : _element$textContent.trim()) || "";
+    return text.length > 50 ? text.substring(0, 50) + "..." : text;
+  }
+
+  // 获取元素属性信息
+  function getElementAttributes(element) {
+    var attrs = {};
+    for (var i = 0; i < element.attributes.length; i++) {
+      var attr = element.attributes[i];
+      attrs[attr.name] = attr.value;
+    }
+    return attrs;
+  }
+
+  // 鼠标悬停事件处理
+  function handleMouseOver(e) {
+    if (!highlightEnabled) return;
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
+
+    // 避免高亮 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
+
+    // 如果是已选中的元素，不显示悬停高亮
+    if (target === selectedElement) {
+      highlightBox.style.display = "none";
+      tagLabel.style.display = "none";
+      return;
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+
+    // 更新悬停高亮框位置
+    highlightBox.style.display = "block";
+    highlightBox.style.left = "".concat(rect.left - 2, "px");
+    highlightBox.style.top = "".concat(rect.top - 2, "px");
+    highlightBox.style.width = "".concat(rect.width + 4, "px");
+    highlightBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新标签位置和内容
+    tagLabel.style.display = "block";
+    tagLabel.textContent = "<".concat(target.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 22;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 0) {
+      labelTop = rect.bottom + 5;
+    }
+
+    // 如果标签会超出右侧，向左调整
+    if (labelLeft + tagLabel.offsetWidth > window.innerWidth) {
+      labelLeft = window.innerWidth - tagLabel.offsetWidth - 5;
+    }
+    tagLabel.style.left = "".concat(Math.max(0, labelLeft), "px");
+    tagLabel.style.top = "".concat(labelTop, "px");
+
+    // 发送消息到父窗口
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
+    };
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 鼠标离开事件处理
+  function handleMouseOut(e) {
+    if (!highlightEnabled) return;
+    var relatedTarget = e.relatedTarget;
+
+    // 如果鼠标移动到高亮相关元素上，不隐藏高亮
+    if (relatedTarget && (relatedTarget === highlightBox || relatedTarget === tagLabel || relatedTarget === overlay || relatedTarget === selectedBox || relatedTarget === selectedLabel)) {
+      return;
+    }
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: null,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 点击事件处理
+  function handleClick(e) {
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
+
+    // 避免处理 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
+
+    // 检查是否是交互元素，这些元素需要保留默认行为
+    var isInteractiveElement = ['input', 'textarea', 'select', 'button', 'a'].includes(target.tagName.toLowerCase());
+
+    // 如果高亮功能启用，对于非交互元素阻止默认行为和事件传播
+    if (highlightEnabled) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+    console.log("Element clicked:", {
+      tagName: target.tagName,
+      selector: selector,
+      rect: rect
+    });
+
+    // 立即更新选中高亮
+    updateSelectedHighlight(target);
+
+    // 隐藏悬停高亮，因为现在是选中状态
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
+    };
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-click",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 监听来自父窗口的消息
+  function handleParentMessage(event) {
+    console.log("Received message from parent:", event.data);
+    if (event.data.type === "iframe-highlight-toggle") {
+      var enabled = event.data.enabled;
+      console.log("Highlight toggle:", enabled);
+      if (enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "enable-iframe-highlight") {
+      console.log("Enable iframe highlight");
+      enableHighlight();
+    } else if (event.data.type === "disable-iframe-highlight") {
+      console.log("Disable iframe highlight");
+      disableHighlight();
+    } else if (event.data.type === "toggle-iframe-highlight") {
+      var _enabled = event.data.enabled !== undefined ? event.data.enabled : !highlightEnabled;
+      console.log("Toggle iframe highlight to:", _enabled);
+      if (_enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "update-selected-element") {
+      var selector = event.data.selector;
+      console.log("Update selected element with selector:", selector);
+      if (selector) {
+        try {
+          var element = document.querySelector(selector);
+          console.log("Found element by selector:", element);
+          updateSelectedHighlight(element);
+        } catch (error) {
+          console.warn("Failed to select element:", error);
+          updateSelectedHighlight(null);
+        }
+      } else {
+        updateSelectedHighlight(null);
+      }
+    } else if (event.data.type === "clear-selected-element") {
+      console.log("Clear selected element");
+      updateSelectedHighlight(null);
+    }
+  }
+
+  // 启用高亮功能
+  function enableHighlight() {
+    console.log("Enabling highlight");
+    document.addEventListener("mouseover", handleMouseOver, true);
+    document.addEventListener("mouseout", handleMouseOut, true);
+    document.addEventListener("click", handleClick, true);
+    highlightEnabled = true;
+    overlay.style.display = "block";
+  }
+
+  // 禁用高亮功能
+  function disableHighlight() {
+    console.log("Disabling highlight");
+    highlightEnabled = false;
+    // 保持事件监听器，但通过 highlightEnabled 变量控制行为
+    // 这样可以保留选中状态的显示
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    // 不隐藏 selectedBox 和 selectedLabel，保留选中状态
+  }
+
+  // 完全禁用高亮功能（移除所有监听器）
+  function fullyDisableHighlight() {
+    console.log("Fully disabling highlight");
+    highlightEnabled = false;
+    document.removeEventListener("mouseover", handleMouseOver, true);
+    document.removeEventListener("mouseout", handleMouseOut, true);
+    document.removeEventListener("click", handleClick, true);
+    overlay.style.display = "none";
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    selectedBox.style.display = "none";
+    selectedLabel.style.display = "none";
+  }
+
+  // 添加事件监听
+  enableHighlight();
+  window.addEventListener("message", handleParentMessage);
+
+  // 暴露全局函数供外部调用
+  window.__iframeHighlightControl = {
+    enable: enableHighlight,
+    disable: disableHighlight,
+    fullyDisable: fullyDisableHighlight,
+    isEnabled: function isEnabled() {
+      return highlightEnabled;
+    },
+    getSelectedElement: function getSelectedElement() {
+      return selectedElement;
+    },
+    updateSelected: updateSelectedHighlight,
+    // 通过消息发送开关控制
+    sendToggleMessage: function sendToggleMessage(enabled) {
+      window.parent.postMessage({
+        type: 'iframe-highlight-status',
+        enabled: enabled || highlightEnabled,
+        source: 'iframe-highlight-injector'
+      }, '*');
+    }
+  };
+
+  // 通知父窗口脚本已加载
+  try {
+    window.parent.postMessage({
+      type: "iframe-highlight-ready",
+      data: {
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        timestamp: Date.now()
+      },
+      source: "iframe-highlight-injector"
+    }, "*");
+  } catch (error) {
+    console.warn("无法发送就绪消息到父窗口:", error);
+  }
+
+  // 清理函数
+  window.__iframeHighlightCleanup = function () {
+    fullyDisableHighlight();
+    window.removeEventListener("message", handleParentMessage);
+    if (overlay.parentElement) {
+      overlay.parentElement.removeChild(overlay);
+    }
+    delete window.__iframeHighlightInitialized;
+    delete window.__iframeHighlightCleanup;
+  };
+})();
+
+</script>
+<style>
+#minimax-floating-ball {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 12px;
+  background: #222222;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  color: #F8F8F8;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  z-index: 9999;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+#minimax-floating-ball:hover {
+  transform: translateY(-2px);
+  background: #383838;
+}
+.minimax-ball-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.minimax-logo-wave {
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg%20preserveAspectRatio%3D%27none%27%20width%3D%27100%25%27%20height%3D%27100%25%27%20overflow%3D%27visible%27%20style%3D%27display%3A%20block%3B%27%20viewBox%3D%270%200%20170.136%20138.225%27%20fill%3D%27none%27%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%3E%3Cg%20id%3D%27Frame%202116748449%27%3E%3Cpath%20id%3D%27Subtract%27%20d%3D%27M170%20101.783C170%20105.144%20168.49%20108.327%20165.886%20110.453L134.963%20135.702C132.964%20137.334%20130.463%20138.225%20127.883%20138.225H10.4938C4.69824%20138.225%200%20133.527%200%20127.732V39.2289C0%2035.8597%201.51758%2032.6698%204.13162%2030.5442L38.5402%202.56547C40.536%200.942662%2043.0298%200.0567377%2045.602%200.0567377H159.506C165.302%200.0567377%20170%204.75498%20170%2010.5506V101.783Z%27%20fill%3D%27black%27%20style%3D%27fill%3Ablack%3Bfill-opacity%3A1%3B%27/%3E%3Cpath%20id%3D%27Subtract_2%27%20d%3D%27M149.011%2094.4632C149.011%2096.1471%20148.253%2097.7415%20146.946%2098.8043L125.893%20115.936C124.895%20116.748%20123.648%20117.191%20122.361%20117.191H24.6479C22.716%20117.191%2021.15%20115.625%2021.15%20113.693V46.1166C21.15%2044.4267%2021.9135%2042.8274%2023.2274%2041.7648L47.367%2022.2437C48.3638%2021.4376%2049.607%2020.9982%2050.8888%2020.9988L145.514%2021.0427C147.446%2021.0436%20149.011%2022.6094%20149.011%2024.5406V94.4632Z%27%20fill%3D%27white%27%20style%3D%27fill%3Awhite%3Bfill-opacity%3A1%3B%27/%3E%3Cpath%20id%3D%27Rectangle%20111142564%27%20d%3D%27M42.111%2080.8025C42.111%2077.7115%2044.6167%2075.2057%2047.7077%2075.2057H60.9999C64.0908%2075.2057%2066.5966%2077.7115%2066.5966%2080.8025V121.029H42.111V80.8025Z%27%20fill%3D%27black%27%20style%3D%27fill%3Ablack%3Bfill-opacity%3A1%3B%27/%3E%3Cpath%20id%3D%27Rectangle%20111142567%27%20d%3D%27M79.1894%2080.8025C79.1894%2077.7115%2081.6952%2075.2057%2084.7861%2075.2057H98.0783C101.169%2075.2057%20103.675%2077.7115%20103.675%2080.8025V121.029H79.1894V80.8025Z%27%20fill%3D%27black%27%20style%3D%27fill%3Ablack%3Bfill-opacity%3A1%3B%27/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 14px 11px;
+  background-color: #8FD1FF;
+  border-radius: 4px;
+}
+
+.minimax-ball-text {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.minimax-close-icon {
+  margin-left: 8px;
+  font-size: 16px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.minimax-close-icon:hover {
+  opacity: 1;
+}
+</style>
+<div id="minimax-floating-ball" style="opacity: 1; transform: translateY(0px);">
+  <div class="minimax-ball-content">
+    <div class="minimax-logo-wave"></div>
+    <span class="minimax-ball-text">Created by MiniMax Agent</span>
+  </div>
+  <div class="minimax-close-icon">×</div>
+</div>
+<script>
+// Initialize floating ball functionality
+function initFloatingBall() {
+  const ball = document.getElementById('minimax-floating-ball');
+  if (!ball) return;
+
+  // Initial animation
+  ball.style.opacity = '0';
+  ball.style.transform = 'translateY(20px)';
+
+  setTimeout(() => {
+    ball.style.opacity = '1';
+    ball.style.transform = 'translateY(0)';
+  }, 500);
+
+  // Handle logo click
+  const ballContent = ball.querySelector('.minimax-ball-content');
+  ballContent.addEventListener('click', function (e) {
+    e.stopPropagation();
+    window.open('https://agent.minimaxi.com/', '_blank');
+    ball.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      ball.style.transform = 'scale(1)';
+    }, 100);
+  });
+
+  // Handle close button click
+  const closeIcon = ball.querySelector('.minimax-close-icon');
+  closeIcon.addEventListener('click', function (e) {
+    e.stopPropagation();
+    ball.style.opacity = '0';
+    ball.style.transform = 'translateY(20px)';
+
+    setTimeout(() => {
+      ball.style.display = 'none';
+    }, 300);
+  });
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', initFloatingBall); 
+</script>
+
+
+</body></html>
