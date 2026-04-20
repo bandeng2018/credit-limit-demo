@@ -1087,8 +1087,8 @@
                 amountInput.placeholder = '请输入';
                 amountInput.className = 'w-full px-3 py-2 rounded-lg border border-slate-200 text-sm';
                 amountInput.dataset.year = year;
-                amountInput.oninput = function() {
-                    // Auto-fill same amount for next years
+                amountInput.onblur = function() {
+                    if (!this.value) return;
                     const nextRow = this.closest('.grid').nextElementSibling;
                     if (nextRow) {
                         const nextInput = nextRow.querySelector('input[type="number"]');
