@@ -1089,13 +1089,19 @@
                 amountInput.dataset.year = year;
                 amountInput.onblur = function() {
                     if (!this.value) return;
-                    const nextRow = this.closest('.grid').nextElementSibling;
-                    if (nextRow) {
-                        const nextInput = nextRow.querySelector('input[type="number"]');
-                        if (nextInput && !nextInput.value) {
-                            nextInput.value = this.value;
+                    const allRows = document.querySelectorAll('#annualPaymentTable > div');
+                    let foundCurrent = false;
+                    allRows.forEach(row => {
+                        if (foundCurrent) {
+                            const input = row.querySelector('input[type="number"]');
+                            if (input && !input.value) {
+                                input.value = this.value;
+                            }
                         }
-                    }
+                        if (row === this.closest('.grid')) {
+                            foundCurrent = true;
+                        }
+                    });
                 };
                 amountWrapper.appendChild(amountInput);
                 row.appendChild(amountWrapper);
