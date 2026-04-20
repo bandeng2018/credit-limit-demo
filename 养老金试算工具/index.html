@@ -333,6 +333,7 @@
                             <i class="fas fa-coins mr-2 text-accent"></i>年度缴费金额（每月）
                         </label>
                         <p class="text-xs text-muted mb-4">请逐年填写每月社保缴费金额（个人部分），点击月份格子可选择断缴月份</p>
+                        <p class="text-xs text-amber-600 mb-4"><i class="fas fa-exclamation-circle mr-1"></i>请从上到下按年份顺序填写，修改任一年份金额后，下方所有年份将自动更新</p>
 
                         <!-- Table Header -->
                         <div class="grid grid-cols-12 gap-2 mb-2 text-xs font-medium text-slate-500 px-2">
@@ -1094,7 +1095,7 @@
                     allRows.forEach(row => {
                         if (foundCurrent) {
                             const input = row.querySelector('input[type="number"]');
-                            if (input && !input.value) {
+                            if (input) {
                                 input.value = this.value;
                             }
                         }
