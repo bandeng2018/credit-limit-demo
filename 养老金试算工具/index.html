@@ -711,30 +711,26 @@
     </div>
 
     <!-- Month Selector Modal -->
-    <div id="monthModal" class="hidden fixed inset-0 z-50">
-        <div class="modal-backdrop absolute inset-0 bg-black/50" onclick="closeMonthModal()"></div>
-        <div class="absolute inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden slide-up">
-            <div class="p-4 border-b border-slate-200 flex justify-between items-center">
-                <h3 class="font-bold text-primary">选择断缴月份</h3>
-                <button onclick="closeMonthModal()" class="text-slate-400 hover:text-slate-600">
-                    <i class="fas fa-times"></i>
-                </button>
+    <div id="monthModal" class="hidden fixed inset-0 z-[9999]" style="display: none;">
+        <div class="absolute inset-0 bg-black/50" onclick="closeMonthModal()"></div>
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 340px; background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); z-index: 10000; overflow: visible;">
+            <div style="padding: 16px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-weight: bold; color: #0f172a; margin: 0;">选择断缴月份</h3>
+                <button onclick="closeMonthModal()" style="background: none; border: none; cursor: pointer; color: #64748b; font-size: 20px; padding: 4px;">×</button>
             </div>
-            <div class="p-4">
-                <p class="text-sm text-muted mb-4">
-                    <i class="fas fa-info-circle mr-1"></i>
+            <div style="padding: 16px;">
+                <p style="font-size: 13px; color: #64748b; margin: 0 0 12px 0;">
                     点击选择起止月份，系统将自动选中连续区间
                 </p>
-                <div class="text-xs text-slate-500 mb-2">1月 - 12月（点击格子选择）</div>
-                <div id="monthGrid" class="grid grid-cols-4 gap-1">
+                <div id="monthGrid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
                     <!-- Month cells will be generated here -->
                 </div>
             </div>
-            <div class="p-4 bg-slate-50 flex justify-between">
-                <button onclick="clearMonthSelection()" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition-all text-sm">
-                    <i class="fas fa-trash-alt mr-1"></i>清除选择
+            <div style="padding: 16px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; gap: 12px;">
+                <button onclick="clearMonthSelection()" style="flex: 1; padding: 10px 16px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; color: #475569; cursor: pointer; font-size: 14px;">
+                    清除选择
                 </button>
-                <button onclick="confirmMonthSelection()" class="px-6 py-2 rounded-lg bg-accent text-white hover:bg-emerald-600 transition-all font-medium text-sm">
+                <button onclick="confirmMonthSelection()" id="confirmBtn" style="flex: 1; padding: 10px 16px; border: none; border-radius: 8px; background: #07C160; color: white; cursor: pointer; font-size: 14px; font-weight: 500;">
                     确认
                 </button>
             </div>
@@ -1164,7 +1160,9 @@
 
             document.addEventListener('mouseup', handleMouseUp);
 
-            document.getElementById('monthModal').classList.remove('hidden');
+            const modal = document.getElementById('monthModal');
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
         }
 
         function handleMouseUp() {
@@ -1246,7 +1244,9 @@
         }
 
         function closeMonthModal() {
-            document.getElementById('monthModal').classList.add('hidden');
+            const modal = document.getElementById('monthModal');
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
             monthSelectorState.selecting = false;
             document.removeEventListener('mouseup', handleMouseUp);
         }
