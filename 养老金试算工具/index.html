@@ -603,7 +603,7 @@
                     <p class="text-xl text-slate-300 mt-2">元/月</p>
                 </div>
 
-                <div class="grid grid-cols-3 gap-6">
+                <div class="grid grid-cols-2 gap-6">
                     <div class="text-center p-6 bg-white/10 rounded-2xl">
                         <div class="text-sm text-slate-400 mb-2">基础养老金</div>
                         <div class="text-2xl font-bold text-white" id="basicPension">2,580</div>
@@ -613,11 +613,6 @@
                         <div class="text-sm text-slate-400 mb-2">个人账户养老金</div>
                         <div class="text-2xl font-bold text-emerald-400" id="personalPension">1,247</div>
                         <div class="text-sm text-slate-400 mt-1">占比 <span id="personalRatio">26%</span></div>
-                    </div>
-                    <div class="text-center p-6 bg-white/10 rounded-2xl">
-                        <div class="text-sm text-slate-400 mb-2">过渡性养老金</div>
-                        <div class="text-2xl font-bold text-amber-400" id="transitionPension">1,000</div>
-                        <div class="text-sm text-slate-400 mt-1">占比 <span id="transitionRatio">21%</span></div>
                     </div>
                 </div>
             </div>
@@ -2605,20 +2600,16 @@
 
             const basicPension = salary * avgRatio * (validPayments.length + monthsRemaining) / 12 * 0.01;
             const personalPension = totalPersonalAccount / paymentMonths;
-            const transitionPension = salary * 2 * 0.012;
-            const totalPension = basicPension + personalPension + transitionPension;
+            const totalPension = basicPension + personalPension;
 
             document.getElementById('totalPension').textContent = Math.round(totalPension).toLocaleString();
             document.getElementById('basicPension').textContent = Math.round(basicPension).toLocaleString();
             document.getElementById('personalPension').textContent = Math.round(personalPension).toLocaleString();
-            document.getElementById('transitionPension').textContent = Math.round(transitionPension).toLocaleString();
 
             const basicRatio = (basicPension / totalPension * 100).toFixed(0);
             const personalRatio = (personalPension / totalPension * 100).toFixed(0);
-            const transitionRatio = (transitionPension / totalPension * 100).toFixed(0);
             document.getElementById('basicRatio').textContent = `${basicRatio}%`;
             document.getElementById('personalRatio').textContent = `${personalRatio}%`;
-            document.getElementById('transitionRatio').textContent = `${transitionRatio}%`;
 
             document.getElementById('personalAccountTotal').textContent = `${Math.round(totalPersonalAccount).toLocaleString()} 元`;
             document.getElementById('paymentMonths').textContent = `${paymentMonths} 月`;
@@ -2644,7 +2635,7 @@
                 const newRatio = ((avgRatio * (totalMonths - parseInt(document.getElementById('monthsRemaining').textContent)) / 12) + (base * parseInt(document.getElementById('monthsRemaining').textContent) / 12)) / (totalMonths / 12);
                 const basicPen = salary * newRatio * totalMonths / 12 * 0.01;
                 const personalPen = newTotalPersonal / paymentMonths;
-                const total = basicPen + personalPen + 1000;
+                const total = basicPen + personalPen;
                 const diff = total - currentTotal;
                 const diffClass = diff > 0 ? 'text-emerald-600' : 'text-red-500';
                 const diffSign = diff > 0 ? '+' : '';
