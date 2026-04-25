@@ -463,7 +463,7 @@
                         <h3 class="font-medium text-slate-700 mb-4">选择缴费基数</h3>
 
                         <!-- Inherit Option -->
-                        <label class="flex items-start gap-4 p-4 rounded-xl border-2 border-accent bg-emerald-50 cursor-pointer transition-all">
+                        <label id="option-inherit" class="flex items-start gap-4 p-4 rounded-xl border-2 border-accent bg-emerald-50 cursor-pointer transition-all">
                             <input type="radio" name="paymentBase" value="inherit" class="mt-1" checked onchange="updateBaseInfo()">
                             <div class="flex-1">
                                 <div class="flex items-center justify-between">
@@ -476,42 +476,42 @@
 
                         <!-- Fixed Base Options -->
                         <div class="grid grid-cols-3 gap-2">
-                            <label class="cursor-pointer">
+                            <label id="option-0.6" class="cursor-pointer">
                                 <input type="radio" name="paymentBase" value="0.6" class="sr-only" onchange="updateBaseInfo()">
                                 <div class="p-3 rounded-xl border-2 border-slate-200 text-center hover:border-accent transition-all">
                                     <div class="text-lg font-bold">0.6</div>
                                     <div class="text-xs text-muted">最低档</div>
                                 </div>
                             </label>
-                            <label class="cursor-pointer">
+                            <label id="option-1.0" class="cursor-pointer">
                                 <input type="radio" name="paymentBase" value="1.0" class="sr-only" onchange="updateBaseInfo()">
                                 <div class="p-3 rounded-xl border-2 border-slate-200 text-center hover:border-accent transition-all">
                                     <div class="text-lg font-bold">1.0</div>
                                     <div class="text-xs text-muted">社平工资</div>
                                 </div>
                             </label>
-                            <label class="cursor-pointer">
+                            <label id="option-1.5" class="cursor-pointer">
                                 <input type="radio" name="paymentBase" value="1.5" class="sr-only" onchange="updateBaseInfo()">
                                 <div class="p-3 rounded-xl border-2 border-slate-200 text-center hover:border-accent transition-all">
                                     <div class="text-lg font-bold">1.5</div>
                                     <div class="text-xs text-muted">1.5倍</div>
                                 </div>
                             </label>
-                            <label class="cursor-pointer">
+                            <label id="option-2.0" class="cursor-pointer">
                                 <input type="radio" name="paymentBase" value="2.0" class="sr-only" onchange="updateBaseInfo()">
                                 <div class="p-3 rounded-xl border-2 border-slate-200 text-center hover:border-accent transition-all">
                                     <div class="text-lg font-bold">2.0</div>
                                     <div class="text-xs text-muted">2倍</div>
                                 </div>
                             </label>
-                            <label class="cursor-pointer">
+                            <label id="option-2.5" class="cursor-pointer">
                                 <input type="radio" name="paymentBase" value="2.5" class="sr-only" onchange="updateBaseInfo()">
                                 <div class="p-3 rounded-xl border-2 border-slate-200 text-center hover:border-accent transition-all">
                                     <div class="text-lg font-bold">2.5</div>
                                     <div class="text-xs text-muted">2.5倍</div>
                                 </div>
                             </label>
-                            <label class="cursor-pointer">
+                            <label id="option-3.0" class="cursor-pointer">
                                 <input type="radio" name="paymentBase" value="3.0" class="sr-only" onchange="updateBaseInfo()">
                                 <div class="p-3 rounded-xl border-2 border-slate-200 text-center hover:border-accent transition-all">
                                     <div class="text-lg font-bold">3.0</div>
@@ -2557,6 +2557,21 @@
             const recentRatio = userData.recentRatio || 1.5;
             const city = userData.retirementCity || '北京';
             const salary = getCityLatestSalary(city) || 10813;
+            const monthlySalary = salary / 12;
+
+            // 动态切换绿框
+            const allOptions = ['inherit', '0.6', '1.0', '1.5', '2.0', '2.5', '3.0'];
+            allOptions.forEach(opt => {
+                const el = document.getElementById(`option-${opt}`);
+                if (!el) return;
+                if (opt === base) {
+                    el.classList.add('border-accent', 'bg-emerald-50');
+                    el.classList.remove('border-slate-200');
+                } else {
+                    el.classList.remove('border-accent', 'bg-emerald-50');
+                    el.classList.add('border-slate-200');
+                }
+            });
 
             let actualBase;
             if (base === 'inherit') {
@@ -2567,12 +2582,12 @@
 
             userData.futureBase = actualBase;
 
-            const monthlyPayment = salary * actualBase * 0.2;
-            const personalAccount = salary * actualBase * 0.08;
-            const poolAccount = salary * actualBase * 0.12;
+            const monthlyPayment = monthlySalary * actualBase * 0.2;
+            const personalAccount = monthlySalary * actualBase * 0.08;
+            const poolAccount = monthlySalary * actualBase * 0.12;
 
             document.getElementById('previewBase').textContent = actualBase.toFixed(2);
-            document.getElementById('previewSalary').textContent = `${salary.toLocaleString()} 元`;
+            document.getElementById('previewSalary').textContent = `${monthlySalary.toLocaleString()} 元/月`;
             document.getElementById('previewTotal').textContent = `${Math.round(monthlyPayment).toLocaleString()} 元`;
             document.getElementById('previewPersonal').textContent = `${Math.round(personalAccount).toLocaleString()} 元`;
             document.getElementById('previewPool').textContent = `${Math.round(poolAccount).toLocaleString()} 元`;
@@ -2584,13 +2599,14 @@
         function calculatePension() {
             const city = userData.retirementCity || '北京';
             const salary = getCityLatestSalary(city) || 10813;
+            const monthlySalary = salary / 12;
             const avgRatio = userData.avgRatio || 1.0;
             const futureBase = userData.futureBase || 1.5;
             const monthsRemaining = parseInt(document.getElementById('monthsRemaining').textContent) || 0;
 
             const validPayments = userData.payments.filter(p => !p.isBreak && p.amount > 0);
             const historicalPayments = validPayments.reduce((sum, p) => sum + (p.amount || 0), 0) * 0.4;
-            const futurePayments = salary * futureBase * 0.08 * monthsRemaining;
+            const futurePayments = monthlySalary * futureBase * 0.08 * monthsRemaining;
             const totalPersonalAccount = historicalPayments + futurePayments;
 
             const retirementAge = userData.identityType === 'worker' ? 50 :
@@ -2598,7 +2614,7 @@
             const paymentMonthsMap = { 50: 195, 55: 170, 60: 139, 65: 101 };
             const paymentMonths = paymentMonthsMap[retirementAge] || 139;
 
-            const basicPension = salary * avgRatio * (validPayments.length + monthsRemaining) / 12 * 0.01;
+            const basicPension = monthlySalary * avgRatio * (validPayments.length + monthsRemaining) / 12 * 0.01;
             const personalPension = totalPersonalAccount / paymentMonths;
             const totalPension = basicPension + personalPension;
 
@@ -2620,20 +2636,21 @@
             const months = totalMonths % 12;
             document.getElementById('resultTotalYears').textContent = `${years}年${months}月`;
             document.getElementById('historicalPayment').textContent = `${Math.round(historicalPayments).toLocaleString()} 元`;
-            document.getElementById('futurePayment').textContent = `${Math.round(salary * futureBase * 0.2 * monthsRemaining).toLocaleString()} 元`;
+            document.getElementById('futurePayment').textContent = `${Math.round(monthlySalary * futureBase * 0.2 * monthsRemaining).toLocaleString()} 元`;
 
-            generateImpactTable(totalPension, salary, avgRatio, totalMonths, totalPersonalAccount, paymentMonths);
+            generateImpactTable(totalPension, monthlySalary, avgRatio, totalMonths, totalPersonalAccount, paymentMonths);
 
             goToStep(4);
         }
 
-        function generateImpactTable(currentTotal, salary, avgRatio, totalMonths, personalAccount, paymentMonths) {
+        function generateImpactTable(currentTotal, monthlySalary, avgRatio, totalMonths, personalAccount, paymentMonths) {
             const bases = [0.6, 1.0, 1.5, 2.0, 2.5, 3.0];
+            const monthsRemaining = parseInt(document.getElementById('monthsRemaining').textContent);
             const rows = bases.map(base => {
-                const futurePersonal = salary * base * 0.08 * parseInt(document.getElementById('monthsRemaining').textContent);
+                const futurePersonal = monthlySalary * base * 0.08 * monthsRemaining;
                 const newTotalPersonal = personalAccount * 0.3 + futurePersonal;
-                const newRatio = ((avgRatio * (totalMonths - parseInt(document.getElementById('monthsRemaining').textContent)) / 12) + (base * parseInt(document.getElementById('monthsRemaining').textContent) / 12)) / (totalMonths / 12);
-                const basicPen = salary * newRatio * totalMonths / 12 * 0.01;
+                const newRatio = ((avgRatio * (totalMonths - monthsRemaining) / 12) + (base * monthsRemaining / 12)) / (totalMonths / 12);
+                const basicPen = monthlySalary * newRatio * totalMonths / 12 * 0.01;
                 const personalPen = newTotalPersonal / paymentMonths;
                 const total = basicPen + personalPen;
                 const diff = total - currentTotal;
@@ -2643,7 +2660,7 @@
                 return `
                     <tr class="border-b border-slate-100 hover:bg-slate-50">
                         <td class="py-3 px-4 font-medium">${base}</td>
-                        <td class="text-right py-3 px-4">${Math.round(salary * base * 0.2).toLocaleString()} 元</td>
+                        <td class="text-right py-3 px-4">${Math.round(monthlySalary * base * 0.2).toLocaleString()} 元</td>
                         <td class="text-right py-3 px-4 font-medium">${Math.round(total).toLocaleString()} 元</td>
                         <td class="text-right py-3 px-4 ${diffClass}">${diffSign}${Math.round(diff).toLocaleString()} 元</td>
                     </tr>
